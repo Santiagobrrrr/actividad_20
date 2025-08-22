@@ -3,7 +3,7 @@ class Empleado:
         self.nombre = nombre
         self.puesto = puesto
         self.__salario = float(salario)
-        self.__codigo = codigo
+        self.__codigo = codigo # Salario y código privados para proteger la integridad de los datos
 
     @property
     def salario(self):
@@ -25,9 +25,9 @@ class Empleado:
 
 class Departamento:
     def __init__(self, nombre_dpto, codigo_interno):
-        self.nombre_dpto = nombre_dpto
-        self.__codigo_interno = codigo_interno
-        self.__empleados = []
+        self.nombre_dpto = nombre_dpto  # público para consulta
+        self.__codigo_interno = codigo_interno  # privado para evitar duplicados
+        self.__empleados = []  # privado solo se modifica con metodos controlados
 
     def agregar_empleado(self, empleado):
         if empleado is None:
@@ -72,13 +72,44 @@ class Departamento:
     def mostrar_info(self):
         return f"Departamento: {self.nombre_dpto} | Código interno: {self.__codigo_interno} | Empleados: {len(self.__empleados)}"
 
+class Empresa:
+    def __init__(self, nombre, registro_legal):
+        self.nombre = nombre  # público, es información general
+        self.__registro_legal = registro_legal  # privado, solo se consulta con getter
+        self.__departamentos = []  # privado para control interno
+
+    @property
+    def registro_legal(self):
+        return self.__registro_legal
+
+    def agregar_departamento(self, departamento):
+        if departamento is None:
+            raise TypeError("Se debe proporcionar un objeto Departamento, no None")
+
+        for d in self.__departamentos:
+            if d.nombre_dpto == departamento.nombre_dpto:
+                raise ValueError(f"Ya existe un departamento llamado {departamento.nombre_dpto}")
+        self.__departamentos.append(departamento)
+
+    def listar_departamentos(self):
+        return list(self.__departamentos)
+
+    def calcular_nomina_total(self):
+        total = 0
+        for d in self.__departamentos:
+            total += d.calcular_nomina()
+        return total
+
+    def mostrar_info(self):
+        return f"Empresa: {self.nombre} | Registro legal: {self.__registro_legal} | Departamentos: {len(self.__departamentos)}"
+
 
 e1 = Empleado("Ana Machic", "Vendedor", 1200.0, "E001")
 e2 = Empleado("Fernando Pérez", "Diseñador", 1500.0, "E002")
 e3 = Empleado("Juan Tiu", "Diseñador", 1300, "E003")
 
 ventas = Departamento("Ventas", "D-VEN")
-diseniador = Departamento("Desarrollo", "D-DESIGN")
+diseniador = Departamento("Diseño", "D-DESIGN")
 
 ventas.agregar_empleado(e1)
 diseniador.agregar_empleado(e2)
@@ -99,17 +130,22 @@ print(f"Salario: {e3.salario}")
 print(f"Código: {e3.id_empleado}")
 print(e3.mostrar_info())
 
-print("\n-- Lista de empleados de Ventas --")
-for emp in ventas.listar_empleados():
-    print(emp.mostrar_info())
+empresa = Empresa("PROGRA SOLUTIONS", "REG-2025-001")
 
-print("\n-- Lista de empleados de Desarrollo --")
+empresa.agregar_departamento(ventas)
+empresa.agregar_departamento(diseniador)
+
+print(f"\n{empresa.mostrar_info()}")
+
+print("\n-- Departamentos --")
+for d in empresa.listar_departamentos():
+    print(d.mostrar_info())
+
+print(f"\nNómina total de la empresa: Q{empresa.calcular_nomina_total()}")
+
+print("\n-- Lista de empleados de Diseño --")
 for emp in diseniador.listar_empleados():
     print(emp.mostrar_info())
-
-print("\nNomina")
-print(f"Equipo de ventas Q{ventas.calcular_nomina()}")
-print(f"Equipo de desarrollo Q{diseniador.calcular_nomina()}")
 
 e2.salario = 2000.0
 e1.salario = 1500.0
